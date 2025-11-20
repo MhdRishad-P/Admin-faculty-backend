@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: adminfaculty-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: adminfacultydb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: appsecret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: adminfaculty
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQLHOST: mysql
+      MYSQLPORT: 3306
+      MYSQLUSER: appuser
+      MYSQLPASSWORD: appsecret
+      MYSQLDATABASE: adminfacultydb
+    ports:
+      - "8080:8080"
+    restart: always
+
+volumes:
+  mysql-data:
